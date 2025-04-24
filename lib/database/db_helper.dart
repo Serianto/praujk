@@ -27,7 +27,16 @@ class DbHelper {
             name TEXT,
             email TEXT UNIQUE,
             password TEXT)''');
-      }
+
+        await db.execute('''
+          CREATE TABLE absensi(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT,
+            tipe TEXT,
+            waktu TEXT,
+            latitude REAL,
+            longitude REAL)''');
+      },
     ); 
   }
 
@@ -37,11 +46,12 @@ class DbHelper {
     String password,
   ) async {
     final dbClient = await db;
-    return await dbClient.insert('users', {
-      'name' : name,
-      'email' : email,
-      'password' : password,
-    });
+    return await dbClient.insert(
+      'users', {
+        'name' : name,
+        'email' : email,
+        'password' : password,
+      });
   }
 
   Future<Map<String, dynamic>?> loginUser (
@@ -57,5 +67,48 @@ class DbHelper {
       return result.first;
     }
     return null;
+  }
+
+  Future<int> insertAbsensi(
+    String email,
+    String tipe,
+    String waktu,
+    double lat,
+    double long
+  ) async {
+    final dbClient = await db;
+    return await dbClient.insert(
+      'absensi', {
+        'email' : email,
+        'tipe' : tipe,
+        'waktu' : waktu,
+        'latitude' : lat,
+        'longitude' : long,
+      });
+  }
+
+  Future<Map<String, dynamic>?> getUserByEmail(
+    String email) async {
+    final dbClient = await db;
+    final result = await dbClient.query(
+      'users',
+      where: 'email = ? ',
+      whereArgs: [email]);
+      if(result.isNotEmpty) return result.first;
+      return null;
+  }
+
+  Future<int> updateUser(
+    int id,
+    String name,
+    String email
+  ) async {
+    final dbClient = await db;
+    return await dbClient.update(
+      'users', {
+        'name' : name,
+        'email' : email},
+        where: 'id = ?',
+        whereArgs: [id]);
   }
 }
