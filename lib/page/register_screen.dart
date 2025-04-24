@@ -14,19 +14,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final passwordController = TextEditingController();
 
   void _register() async {
-    try {
-      await DbHelper().registerUser(
-        nameController.text, 
-        emailController.text, 
-        passwordController.text);
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text;
 
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Registrasi Berhasil')));
-        // ignore: use_build_context_synchronously
-        Navigator.pop(context);
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Semua field harus diisi!')),
+      );
+      return;
+    }
+    try {
+      await DbHelper().registerUser(name, email, password);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Registrasi Berhasil')),
+      );
+      Navigator.pop(context);
     } catch (e) {
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Email Telah Terdaftar')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Email Telah Terdaftar')),
+      );
     }
   }
 
@@ -34,38 +42,89 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Register'),
+        title: const Text('Daftar Akun'),
+        backgroundColor: Colors.deepPurple, // Ganti warna app bar
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20)
+            ),
+            Text(
+              'Buat Akun Baru',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.deepPurple,
+              ),
+            ),
+            const SizedBox(height: 20),
             TextField(
               controller: nameController,
+              autocorrect: false,
               decoration: InputDecoration(
-                labelText: 'Nama'
+                labelText: 'Nama Lengkap',
+                prefixIcon: Icon(Icons.person),
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.deepPurple, width: 2),
+                ),
               ),
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: emailController,
+              keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
-                labelText: 'Email'
+                labelText: 'Email',
+                prefixIcon: Icon(Icons.email),
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.deepPurple, width: 2),
+                ),
               ),
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: passwordController,
               obscureText: true,
               decoration: InputDecoration(
-                labelText: 'Password'
+                labelText: 'Password',
+                prefixIcon: Icon(Icons.lock),
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.deepPurple, width: 2),
+                ),
               ),
             ),
-
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _register, 
-              child: Text('Register'))
+              onPressed: _register,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 40),
+                textStyle: const TextStyle(fontSize: 16),
+              ),
+              child: const Text('Daftar'),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Sudah punya akun?'),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Login', style: TextStyle(color: Colors.deepPurple)),
+                ),
+              ],
+            ),
           ],
-        ),),
+        ),
+      ),
     );
   }
 }

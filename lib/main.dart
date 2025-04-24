@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:praujk/page/home_screen.dart';
+import 'package:praujk/page/login_screen.dart';
+import 'package:praujk/page/register_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -6,6 +10,11 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+  Future<bool> checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('isLoggedIn') ?? false;
+  }
 
   // This widget is the root of your application.
   @override
@@ -30,7 +39,20 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: FutureBuilder(
+        future: checkLoginStatus(), 
+        builder: (context, snapshot) {
+          if(snapshot.connectionState == ConnectionState.waiting)
+          return CircularProgressIndicator();
+            if(snapshot.data == true) 
+            return HomeScreen();
+            return LoginScreen();
+        },
+      ),
+      routes: {
+        '/register' : (_) => RegisterScreen()
+      }, 
+      //const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }

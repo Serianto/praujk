@@ -111,4 +111,14 @@ class DbHelper {
         where: 'id = ?',
         whereArgs: [id]);
   }
+
+  Future<List<Map<String, dynamic>>> getRiwayatByEmail(String email) async {
+    final dbClient = await db;
+    return await dbClient.query(
+      'absensi',
+      where: 'email = ?',
+      whereArgs: [email],
+      orderBy: 'waktu DESC',
+    );
+  }
 }

@@ -1,8 +1,7 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:praujk/database/db_helper.dart';
 import 'package:praujk/page/home_screen.dart';
+import 'package:praujk/page/register_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -17,51 +16,118 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
 
   void _login() async {
-    final user = await DbHelper().loginUser(
-      emailController.text, 
-      passwordController.text);
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
 
-      if(user != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('isLoggedIn', true);
-        await prefs.setString('userEmail', user['email']);
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Email dan Password harus diisi!')),
+      );
+      return;
+    }
 
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Login Gagal')));
-      }
+    // Memanggil fungsi untuk mengecek login
+    final user = await DbHelper().loginUser(email, password);
+
+    if (user != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('userEmail', user['email']);
+      await prefs.setString('userName', user['name']);
+
+      // Berpindah ke HomeScreen jika login sukses
+      Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login Gagal, Periksa Kembali Data Anda')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blueGrey[50], // Background warna lebih soft
       appBar: AppBar(
+        backgroundColor: Colors.blueAccent,
         title: Text('Login'),
+        centerTitle: true,
       ),
-
-      body: Padding(
+      body: SingleChildScrollView(  // Membuat agar bisa scroll jika keyboard muncul
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            // Logo atau Icon Aplikasi
+            Icon(
+              Icons.login,
+              size: 120,
+              color: Colors.blueAccent,
+            ),
+            SizedBox(height: 40),
+
+            // Form input Email
             TextField(
               controller: emailController,
               decoration: InputDecoration(
-                labelText: 'Email'
+                labelText: 'Email',
+                prefixIcon: Icon(Icons.email, color: Colors.blueAccent),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                filled: true,
+                fillColor: Colors.white,
               ),
+              keyboardType: TextInputType.emailAddress,
             ),
+            SizedBox(height: 20),
+
+            // Form input Password
             TextField(
               controller: passwordController,
               decoration: InputDecoration(
-                labelText: 'Password'
+                labelText: 'Password',
+                prefixIcon: Icon(Icons.lock, color: Colors.blueAccent),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              obscureText: true,
+            ),
+            SizedBox(height: 40),
+
+            // Tombol Login
+            ElevatedButton(
+              onPressed: _login,
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 60),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: Text(
+                'Login',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
-
             SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _login, 
-              child: Text('Login'))
+
+            // Tombol menuju halaman Register
+            TextButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => RegisterScreen()),
+              ),
+              child: Text(
+                'Belum Punya Akun? Daftar Sekarang',
+                style: TextStyle(color: Colors.blueAccent),
+              ),
+            ),
           ],
-        ),),
+        ),
+      ),
     );
   }
 }

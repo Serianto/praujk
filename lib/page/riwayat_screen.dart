@@ -1,7 +1,4 @@
-// ignore_for_file: curly_braces_in_flow_control_structures
-
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:praujk/database/db_helper.dart';
 
 class RiwayatScreen extends StatelessWidget {
@@ -9,59 +6,58 @@ class RiwayatScreen extends StatelessWidget {
 
   const RiwayatScreen({super.key, required this.userEmail});
 
-  Future<List<Map<String, dynamic>>> _getRiwayatAbsensi() async {
+  Future<List<Map<String, dynamic>>> _fetchRiwayat() {
+    return DbHelper().getRiwayatByEmail(userEmail);
+  }
+
+  Future<void> _hapusRiwayat() async {
     final db = await DbHelper().db;
-    return await db.query(
+    await db.delete(
       'absensi',
       where: 'email = ?',
       whereArgs: [userEmail],
-      orderBy: 'waktu DESC'
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _getRiwayatAbsensi(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
-          return Center(child: CircularProgressIndicator());
-        if (!snapshot.hasData || snapshot.data!.isEmpty)
-          return Center(child: Text('Belum ada data absensi'));
+    return Scaffold(
+      //appBar: AppBar(title: const Text('Riwayat Absensi')),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _fetchRiwayat(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting)
+            return const Center(child: CircularProgressIndicator());
 
-        Map<String, Map<String, Map<String, dynamic>>> grouped = {};
+          if (!snapshot.hasData || snapshot.data!.isEmpty)
+            return const Center(child: Text('Belum ada riwayat absensi'));
 
-        for (var absen in snapshot.data!) {
-          final date = absen['waktu'].split(' ')[0];
-          final tipe = absen['tipe'];
-          grouped[date] ??= {};
-          grouped[date]![tipe] = absen;
-        }
-
-        return ListView(
-          padding: EdgeInsets.all(16),
-          children: grouped.entries.map((entry) {
-            final date = entry.key;
-            final masuk = entry.value['masuk'];
-            final pulang = entry.value['pulang'];
-
-            return Card(
-              child: ListTile(
-                title: Text(
-                  DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(DateTime.parse(date))
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              final item = snapshot.data![index];
+              return Card(
+                elevation: 3,
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  title: Text('${item['tipe'].toString().toUpperCase()} - ${item['waktu']}'),
+                  subtitle: Text('Lat: ${item['latitude']}, Long: ${item['longitude']}'),
+                  leading: Icon(
+                    item['tipe'] == 'masuk' ? Icons.login : Icons.logout,
+                    color: item['tipe'] == 'masuk' ? Colors.green : Colors.red,
+                  ),
                 ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Masuk : ${masuk != null ? masuk['waktu'].split(' ')[1] : '-'}'),
-                    Text('Pulang : ${pulang != null ? pulang['waktu'].split(' ')[1] : '-'}'),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-        );
-      }
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _hapusRiwayat,
+        child: const Icon(Icons.delete_forever),
+        tooltip: 'Hapus Semua Riwayat',
+      ),
     );
   }
 }
