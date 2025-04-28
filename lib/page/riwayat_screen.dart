@@ -1,13 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:praujk/database/db_helper.dart';
 
-class RiwayatScreen extends StatelessWidget {
+class RiwayatScreen extends StatefulWidget {
   final String userEmail;
 
   const RiwayatScreen({super.key, required this.userEmail});
 
+  @override
+  State<RiwayatScreen> createState() => _RiwayatScreenState();
+}
+
+class _RiwayatScreenState extends State<RiwayatScreen> {
+  late Future<List<Map<String, dynamic>>> _riwayatFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _riwayatFuture = _fetchRiwayat();
+  }
+
   Future<List<Map<String, dynamic>>> _fetchRiwayat() {
-    return DbHelper().getRiwayatByEmail(userEmail);
+    return DbHelper().getRiwayatByEmail(widget.userEmail);
   }
 
   Future<void> _hapusRiwayat() async {
@@ -15,8 +28,13 @@ class RiwayatScreen extends StatelessWidget {
     await db.delete(
       'absensi',
       where: 'email = ?',
-      whereArgs: [userEmail],
+      whereArgs: [widget.userEmail],
     );
+
+    // Setelah menghapus, refresh data untuk UI
+    setState(() {
+      _riwayatFuture = _fetchRiwayat(); // Memuat ulang riwayat setelah dihapus
+    });
   }
 
   @override
@@ -24,7 +42,7 @@ class RiwayatScreen extends StatelessWidget {
     return Scaffold(
       //appBar: AppBar(title: const Text('Riwayat Absensi')),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _fetchRiwayat(),
+        future: _riwayatFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting)
             return const Center(child: CircularProgressIndicator());

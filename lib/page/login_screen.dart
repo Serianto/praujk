@@ -19,12 +19,27 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Email dan Password harus diisi!')),
-      );
-      return;
-    }
+      if (email.isEmpty || password.isEmpty) {
+        // Menampilkan dialog jika email atau password kosong
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Peringatan'),
+              content: Text('Email dan Password harus diisi!'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Menutup dialog
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+        return;
+      }
 
     // Memanggil fungsi untuk mengecek login
     final user = await DbHelper().loginUser(email, password);
@@ -39,8 +54,22 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (context) => HomeScreen()));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login Gagal, Periksa Kembali Data Anda')),
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Login Gagal'),
+            content: Text('Harap isi email dan password dengan benar :)'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Menutup dialog
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
       );
     }
   }
@@ -58,12 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Logo atau Icon Aplikasi
-            Icon(
-              Icons.login,
-              size: 120,
-              color: Colors.blueAccent,
-            ),
+            Image.asset('Assets/login.png'),
             SizedBox(height: 40),
 
             // Form input Email

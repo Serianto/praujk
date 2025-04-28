@@ -49,13 +49,13 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-void _setTanggal() async {
-  final now = DateTime.now();
-  final formatter = DateFormat("EEEE, dd MMMM yyyy", "id_ID");
-  setState(() {
-    currentDate = formatter.format(now);
-  });
-}
+  void _setTanggal() async {
+    final now = DateTime.now();
+    final formatter = DateFormat("EEEE, dd MMMM yyyy", "id_ID");
+    setState(() {
+      currentDate = formatter.format(now);
+    });
+  }
 
   Future<LatLng?> _getUserLocation() async {
     bool serviceEnabled;
@@ -103,33 +103,45 @@ void _setTanggal() async {
     'longitude': position.longitude,
   });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('$absenText Berhasil'),
         content: Text(
           '$absenText berhasil pada $formattedTime\nLokasi: ${position.latitude}, ${position.longitude}',
         ),
-      ),
-    );
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Menutup dialog
+            },
+            child: Text('OK'),
+          ),
+        ],
+      );
+    },
+  );
     _loadAbsensiMasuk();
   }
 
-Future<void> _pulang(String tipe) async {
-  final now = DateTime.now();
-  final formattedTime = DateFormat('yyyy-MM-dd -- HH:mm:ss').format(now);
-  String absenText = tipe == 'keluar' ? 'Absen Pulang' : 'Absen Masuk';
+  Future<void> _pulang(String tipe) async {
+    final now = DateTime.now();
+    final formattedTime = DateFormat('yyyy-MM-dd -- HH:mm:ss').format(now);
+    String absenText = tipe == 'keluar' ? 'Absen Pulang' : 'Absen Masuk';
 
-  // Ambil lokasi
-  Position position = await Geolocator.getCurrentPosition(
-    desiredAccuracy: LocationAccuracy.high,
-  );
+    // Ambil lokasi
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
 
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('absen$tipe', formattedTime); 
-  await prefs.setDouble('latitude$tipe', position.latitude);
-  await prefs.setDouble('longitude$tipe', position.longitude);
+    await prefs.setString('absen$tipe', formattedTime); 
+    await prefs.setDouble('latitude$tipe', position.latitude);
+    await prefs.setDouble('longitude$tipe', position.longitude);
 
   final db = await DbHelper().db;
-  await db.insert('absensi', {
+   await db.insert('absensi', {
     'email': prefs.getString('userEmail'),
     'waktu': formattedTime,
     'tipe': tipe,
@@ -137,15 +149,25 @@ Future<void> _pulang(String tipe) async {
     'longitude': position.longitude,
   });
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(
-        '$absenText berhasil pada $formattedTime\nLokasi: ${position.latitude}, ${position.longitude}',
-      ),
-    ),
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('$absenText Berhasil'),
+        content: Text(
+          '$absenText berhasil pada $formattedTime\nLokasi: ${position.latitude}, ${position.longitude}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Menutup dialog
+            },
+            child: Text('OK'),
+          ),
+        ],
+      );
+    },
   );
-
-
   _loadAbsensiKeluar();
 }
 
@@ -192,14 +214,10 @@ void _loadAbsensiKeluar() async {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Halo, $userName!',
+            'Halo, $userName :)',
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          Text(
-            currentDate.isEmpty ? 'Loading...' : currentDate,
-            style: TextStyle(color: Colors.grey[600], fontSize: 16),
-          ),
           const SizedBox(height: 20),
 
           Container(
@@ -245,6 +263,7 @@ void _loadAbsensiKeluar() async {
               },
             ),
           ),
+          SizedBox(height: 20),
           Center(
             child: Card(
               elevation: 4,

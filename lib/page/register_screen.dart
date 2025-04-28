@@ -50,17 +50,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20)
-            ),
-            Text(
-              'Buat Akun Baru',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
-              ),
-            ),
+            Image.asset('Assets/register.png'),
             const SizedBox(height: 20),
             TextField(
               controller: nameController,

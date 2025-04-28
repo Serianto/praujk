@@ -88,11 +88,32 @@ Widget build(BuildContext context) {
                   onPressed: () async {
                     final user = await DbHelper().getUserByEmail(widget.userEmail);
                     if (user != null) {
+                      // Simpan perubahan nama ke database
                       await DbHelper().updateUser(user['id'], _nameController.text, _emailController.text);
+                      
+                      // Simpan nama baru ke SharedPreferences
                       final prefs = await SharedPreferences.getInstance();
-                      await prefs.setString('userEmail', _emailController.text);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Profil berhasil diperbaharui, silakan login ulang')),
+                      await prefs.setString('userName', _nameController.text);  // Simpan nama yang baru
+
+                      // Menampilkan dialog sebagai notifikasi
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Sukses'),
+                            content: Text('Profil berhasil diperbaharui, silakan login ulang'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  // Kembali ke HomeScreen setelah dialog ditutup
+                                  Navigator.pop(context); // Menutup dialog
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen())); // Kembali ke HomeScreen
+                                },
+                                child: Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
                       );
                     }
                   },
